@@ -9,7 +9,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.miniproj.model.HBoardDTO;
 import com.miniproj.model.HBoardVO;
 import com.miniproj.service.hboard.HBoardService;
 
@@ -35,14 +38,46 @@ public class HBoardController {
 	public void listAll(Model model) {
 		logger.info("HBoardController.listAll().............");
 		
-		List<HBoardVO> lst = service.getAllBoard(); // 서비스 메서드 호출
+		List<HBoardVO> lst;
+		try {
+			lst = service.getAllBoard();
+			model.addAttribute("boardList", lst); // model 객체에 데이터 바인딩
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			model.addAttribute("exception", "error");
+			
+		} // 서비스 메서드 호출
 	
 //		for (HBoardVO b : lst) {
 //			System.out.println(b.toString());
 //			
 //		}
+	}
 	
-		model.addAttribute("boardList", lst); // model 객체에 데이터 바인딩
+	@RequestMapping(value="/saveBoard", method = RequestMethod.GET)
+	public String showSaveBoardForm() { // 게시판 글 저장페이지를 출력하는 메서드
+		return "/hboard/saveBoardForm";
+	}
+	
+	// 게시글 저장 버튼을 누르면 해당 게시글을 DB에 저장하는 메서드
+	@RequestMapping(value="/saveBoard", method = RequestMethod.POST)
+	public String saveBoard(HBoardDTO boardDTO, RedirectAttributes rttr) {
+		System.out.println("글 저장하러 가자 : " + boardDTO.toString());
+		
+		String returnPage = "redirect:/hboard/listAll";
+		
+		try {
+			if(service.saveBoard(boardDTO)) {
+				System.out.println("저장 성공");
+				rttr.addAttribute("status", "success");
+			}
+		} catch (Exception e) {	
+			e.printStackTrace();
+			rttr.addAttribute("status", "fail");
+		}
+		
+		return returnPage; // 게시글 전체 목록 페이지로 돌아감
 	}
 	
 }
