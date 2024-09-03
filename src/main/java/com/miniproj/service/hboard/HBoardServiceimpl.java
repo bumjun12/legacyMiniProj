@@ -15,6 +15,11 @@ import com.miniproj.persistence.PointLogDAO;
 
 import lombok.extern.slf4j.Slf4j;
 
+// Service단에서 해야 할 작업
+// 1) Controller에서 넘겨진 파라미터를 처리한 후 (비즈니스 로직에 의해 ... 트랜잭션 처리를 통해)
+// 2) DB작업이 필요하다면 DAO단 호출 ...
+// 3) DAO단에서 반환된 값을 Controller단으로 넘겨준다.
+
 @Slf4j
 @Service // 아래의 클래스가 서비스 객체임을 컴파일러에게 알려줌
 
