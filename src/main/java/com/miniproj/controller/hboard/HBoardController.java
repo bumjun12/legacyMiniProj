@@ -1,8 +1,10 @@
 package com.miniproj.controller.hboard;
 
+import java.io.IOException;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,11 +12,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.miniproj.model.HBoardDTO;
 import com.miniproj.model.HBoardVO;
 import com.miniproj.service.hboard.HBoardService;
+import com.miniproj.util.FileProcess;
 
 // Controller 단에서 해야 할 일
 // 1) URI 매핑 (어떤 URI가 어떤 방식 (GET/POST)으로 호출되었을 때 어떤 메서드에 매핑 시킬 것이냐)
@@ -33,6 +38,9 @@ public class HBoardController {
 	
 	@Inject
 	private HBoardService service; // 서비스객체 주입
+	
+	@Inject
+	private FileProcess fileProcess; // FilePorcess 객체 주입
 	
 	@RequestMapping("/listAll") // /hboard/listAll
 	public void listAll(Model model) {
@@ -79,6 +87,37 @@ public class HBoardController {
 		
 		return returnPage; // 게시글 전체 목록 페이지로 돌아감
 	}
+	
+	@RequestMapping(value="/upfiles", method=RequestMethod.POST)
+	public void saveBoardfile(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+		System.out.println("파일 전송 요청됨");
+		System.out.println("파일의 오리지널 이름 : " + file.getOriginalFilename());
+		System.out.println("파일의 사이즈 : " + file.getSize());
+		System.out.println("파일의 contentType : " + file.getContentType());
+		
+		try {
+			fileSave(file, request);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+
+	private void fileSave(MultipartFile file, HttpServletRequest request) throws IOException {
+		// 파일의 기본 정보 저장
+		String originalFileName = file.getOriginalFilename();
+		Long fileSize = file.getSize();
+		String conteneType = file.getContentType();
+		byte[] upfile = file.getBytes(); // 파일의 실제 데이터
+		
+		String realPath = request.getSession().getServletContext().getRealPath("/resources/boardUpFiles");
+		System.out.println("서버의 실제 물리적 경로 : " + realPath);
+		
+		// 실제 파일 저장
+		fileProcess.saveFileToRealPath(upfile, realPath, conteneType, originalFileName, fileSize);
+	}
+
 	
 }
 
