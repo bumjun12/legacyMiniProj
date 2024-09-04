@@ -35,7 +35,7 @@
 					console.log(upfiles);
 					
 					// 업로드 호출하기 전 미리보기
-					showPreview(file);
+// 					showPreview(file);
 					
 					// 해당파일을 업로드
 					fileUpload(file);
@@ -63,7 +63,11 @@
 	          processData : false,
 	          contentType: false,
 	          success: function (data) {
-	        	  
+	        	  console.log(data);
+	        	  if (data.msg == 'success') {
+	        		  showPreview(file, data.newFileName);
+	        		  
+	        	  }
 	          },
 	          error: function () {},
 	          complete: function () {},
@@ -74,7 +78,7 @@
 	
 	
 	// 넘겨진 file이 이미지 파일이면 미리보기 하여 출력한다.
-	function showPreview(file) {
+	function showPreview(file, newFileName) {
 		let imageType = ["image/jpeg", "image/png", "image/gif"];
 		console.log(file.type);
 		
@@ -82,11 +86,43 @@
 		
 		if (imageType.indexOf(fileType) != -1) {
 			// 이미지 파일이라면
-			alert("이미지 파일입니다.");
+// 			alert("이미지 파일입니다.");
+			let output = `<div><img src='/resources/boardUpFiles\${newFileName}'/><span>\${file.name}</span>`;
+			output += `<span><img src='/resources/images/remove.png' width='20px'; onclick='remFile(this)'
+			id='\${newFileName}'/></span></div>`
+			$(".preview").append(output);
+			
 		} else {
-			alert("이미지 파일이 아닙니다.");
+// 			alert("이미지 파일이 아닙니다.");
+			let output = `<div><img src='/resources/images/noimage.png' width='25px'/><span>\${file.name}</span>`;
+			output += `<span><img src='/resources/images/remove.png' width='20px'; onclick='remFile(this)'
+			id='\${newFileName}'/></span></div>`
+			$(".preview").append(output);
+			
 		}
 	}
+	 
+	// 업로드한 파일을 지운다. (화면, front배열, 백엔드)
+function remFile(obj) {
+    console.log('지워야할 파일 이름 : ' +  $(obj).attr('id'));
+    let removeFileName = $(obj).attr('id');
+    
+    // 파일 삭제 
+    $.ajax({
+        url: '/hboard/removefile', // 데이터가 송수신될 서버의 주소
+        type: "POST", // 통신 방식 (GET, POST, PUT, DELETE)
+        dataType: "json", // 수신 받을 데이터 타입 (MIME TYPE)
+        data: {
+            "removeFileName": removeFileName
+        }, // 보낼 데이터
+        success: function (data) {
+            console.log(data);
+        },
+        error: function () {},
+        complete: function () {}
+    }); // 이 줄에서 괄호가 닫힘
+}
+	
 	
 
 	function validBoard(){
