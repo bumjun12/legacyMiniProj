@@ -1,5 +1,6 @@
 package com.miniproj.service.hboard;
 
+import java.util.HashMap;
 import java.util.List;
 
 import com.miniproj.model.HBoardDTO;
@@ -11,5 +12,7 @@ public interface HBoardService {
 
 	// 게시글 저장
 	boolean saveBoard(HBoardDTO boardDTO) throws Exception;
+
+	HashMap<String, Object> viewBoardByBoardNo(int boardNo) throws Exception;
 	
 }
