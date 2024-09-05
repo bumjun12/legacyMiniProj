@@ -58,7 +58,7 @@ public class FileProcess {
 				
 				result = BoardUpFilesVODTO.builder()
 				.ext(ext)
-				.newFileName(newFileName)
+				.newFileName(ymd[2] + File.separator + newFileName)
 				.originFileName(ymd[2] + File.separator + originalFileName)
 				.size(fileSize)
 				.base64Img(base64Str)
@@ -185,6 +185,7 @@ public class FileProcess {
 	}
 
 	public boolean removeFile(String removeFileName) {
+		// 업로드된 파일을 하드디스크에서 삭제
 		boolean result = false;
 		
 		File tmpFile = new File(removeFileName);

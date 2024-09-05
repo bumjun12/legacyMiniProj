@@ -34,9 +34,6 @@
 					upfiles.push(file); // 배열에 담기
 					console.log(upfiles);
 					
-					// 업로드 호출하기 전 미리보기
-// 					showPreview(file);
-					
 					// 해당파일을 업로드
 					fileUpload(file);
 				}
@@ -107,21 +104,54 @@ function remFile(obj) {
     console.log('지워야할 파일 이름 : ' +  $(obj).attr('id'));
     let removeFileName = $(obj).attr('id');
     
-    // 파일 삭제 
-    $.ajax({
-        url: '/hboard/removefile', // 데이터가 송수신될 서버의 주소
-        type: "POST", // 통신 방식 (GET, POST, PUT, DELETE)
-        dataType: "json", // 수신 받을 데이터 타입 (MIME TYPE)
-        data: {
-            "removeFileName": removeFileName
-        }, // 보낼 데이터
-        success: function (data) {
-            console.log(data);
-        },
-        error: function () {},
-        complete: function () {}
-    }); // 이 줄에서 괄호가 닫힘
+    for (let i = 0; i < upfiles.length; i ++) {
+    	if (upfiles[i].name == $(obj).parent().prev().html()) {
+    		
+    	// 파일 삭제 
+		    $.ajax({
+		        url: '/hboard/removefile', // 데이터가 송수신될 서버의 주소
+		        type: "POST", // 통신 방식 (GET, POST, PUT, DELETE)
+		        dataType: "json", // 수신 받을 데이터 타입 (MIME TYPE)
+		        data: {
+		            "removeFileName": removeFileName
+		        }, // 보낼 데이터
+		        success: function (data) {
+		            console.log(data);
+			        if (data.msg == 'success') {   // upfiles 배열에서 삭제
+						upfiles.splice(i, 1);		        	
+			        	console.log(upfiles);
+				        $(obj).parent().parent().remove(); // 미리보기 태그 삭제
+				        }
+			        },
+			        
+		        error: function () {},
+		        complete: function () {}
+		    }); 
+   		 }
+    }
 }
+	
+	function cancelboard() {
+		// 취소 버튼을 클릭하면 업로드한 파일을 모두 삭제 해야 한다.
+		// 서버에 저장한 해당 글작성시 업로드한 모든 파일을 지우고
+		// view단에서 태그 삭제
+		 $.ajax({
+		        url: '/hboard/cancelBoard', // 데이터가 송수신될 서버의 주소
+		        type: "GET", // 통신 방식 (GET, POST, PUT, DELETE)
+		        dataType: "text", // 수신 받을 데이터 타입 (MIME TYPE) : json, text, xml
+		        success: function (data) {
+		            console.log(data);
+		        if (data == 'success') {   // upfiles 배열에서 삭제
+// 						upfiles.splice(i, 1);		        	
+// 			        	console.log(upfiles);
+// 				        $(obj).parent().parent().remove(); // 미리보기 태그 삭제
+				     	location.href="/hboard/listAll"
+				        } 
+			    }, 
+		        error: function () {},
+		        complete: function () {}
+		    }); 
+	}
 	
 	
 
@@ -188,6 +218,7 @@ function remFile(obj) {
 			<div class="preview"></div>
 			
 				<button type="submit" class="btn btn-primary" onclick="return validBoard();" >저장</button>
+				<button type="reset" class="btn btn-info" onclick="cancelboard();">취소</button>
 				
 			</form>
 			

@@ -7,6 +7,7 @@ import javax.inject.Inject;
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.stereotype.Repository;
 
+import com.miniproj.model.BoardUpFilesVODTO;
 import com.miniproj.model.HBoardDTO;
 import com.miniproj.model.HBoardVO;
 
@@ -33,6 +34,30 @@ public class HBoardDAOimpl implements HBoardDAO {
 	@Override
 	public int insertNewBoard(HBoardDTO newBoard) throws Exception {
 		return ses.insert(ns + "saveNewBoard", newBoard);
+	}
+
+	@Override
+	public int selectMaxBoardNo() throws Exception {
+		return ses.selectOne(ns + "getMaxNo");
+		
+	}
+
+	@Override
+	public int insertBoardUpFile(BoardUpFilesVODTO file) throws Exception {
+		return ses.insert(ns + "saveUpFile", file);
+		
+	}
+
+	@Override
+	public HBoardVO selectBoardByBoardNo(int boardNo) throws Exception {
+		return ses.selectOne(ns + "selectBoardByBoardNo", boardNo);
+		
+	}
+
+	@Override
+	public List<BoardUpFilesVODTO> selectBoardUpfileByBoardNo(int boardNo) throws Exception {
+		return ses.selectList(ns + "selectBoardUpfileByBoardNo", boardNo);
+		
 	}
 
 }

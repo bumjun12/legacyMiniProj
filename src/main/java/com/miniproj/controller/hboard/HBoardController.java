@@ -1,7 +1,9 @@
 package com.miniproj.controller.hboard;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -13,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -84,17 +87,23 @@ public class HBoardController {
 	public String saveBoard(HBoardDTO boardDTO, RedirectAttributes rttr) {
 		System.out.println("글 저장하러 가자 : " + boardDTO.toString());
 		
+		//	첨부파일 리스트를 boardDTO에 추가
+		boardDTO.setFileList(uploadFileList);
+		
 		String returnPage = "redirect:/hboard/listAll";
 		
 		try {
 			if(service.saveBoard(boardDTO)) {
-				System.out.println("저장 성공");
+				System.out.println("게시글+파일 저장 성공");
 				rttr.addAttribute("status", "success");
 			}
 		} catch (Exception e) {	
 			e.printStackTrace();
 			rttr.addAttribute("status", "fail");
 		}
+		
+		// 이전 글에 파일들 저장시 사용된 리스트를 지워주는 작업
+		uploadFileList.clear();
 		
 		return returnPage; // 게시글 전체 목록 페이지로 돌아감
 	}
@@ -176,7 +185,7 @@ public class HBoardController {
 			for (int i = 0; i < uploadFileList.size(); i ++) {
 				if (uploadFileList.get(i).getThumbFileName().contains(removeFileName)) {
 					System.out.println(i + "번째에서 해당 파일 찾았음" + uploadFileList.get(i).getThumbFileName());
-					if (fileProcess.removeFile(realPath + removeFileName)) {
+					if (fileProcess.removeFile(realPath + removeFileName) && fileProcess.removeFile(realPath + uploadFileList.get(i).getNewFileName())) {
 						removeIndex = i;
 						System.out.println(removeFileName +  "파일 삭제 성공");
 						removeResult = true;
@@ -214,6 +223,59 @@ public class HBoardController {
 		return result;
 	}
 	
+	// 취소 처리
+//	@GetMapping("/cancelBoard")
+	@RequestMapping(value = "/cancelBoard", method = RequestMethod.GET)
+	public ResponseEntity<String> cancelBoard(HttpServletRequest request) {
+		System.out.println("유저가 업로드한 모든 파일을 삭제하자");
+		String realPath = request.getSession().getServletContext().getRealPath("/resources/boardUpFiles");
+		
+		allUploadFilesDelete(realPath, uploadFileList);
+		
+		return new ResponseEntity<String>("success", HttpStatus.OK); 
+	}
+
+	private void allUploadFilesDelete(String realPath, List<BoardUpFilesVODTO> fileList) {
+//		System.out.println(realPath);
+		
+		for (int i = 0; i < fileList.size(); i++) {
+			
+			fileProcess.removeFile(realPath + fileList.get(i).getNewFileName()); // realPath + \2024\09\05\new.png
+//			System.out.println(i + "번째 : " + fileList.get(i).getNewFileName());
+			
+			System.out.println(fileList.get(i).toString());
+			
+			// 이미지 파일이면 썸네일 파일 또한 삭제해야함
+			if (fileList.get(i).getThumbFileName() != null) {
+				fileProcess.removeFile(realPath + fileList.get(i).getThumbFileName());
+			}
+			
+		}
+		
+	}
+	
+	// -------------------- 게시글 상세 페이지 --------------------
+	
+	@GetMapping("/viewBoard") // hboard/viewBoard?boardNo=24
+	public void viewBoard(@RequestParam("boardNo") int boardNo, Model model) {
+		
+		logger.info(boardNo + "번 글을 조회하자~");
+		// viewBoard.jsp 에 상세글 + 업로드 파일 정보 출력
+		HashMap<String, Object> boardMap = null;
+		
+		try {
+			boardMap = service.viewBoardByBoardNo(boardNo);
+			
+			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		model.addAttribute("board", boardMap.get("board"));
+		model.addAttribute("fileList", boardMap.get("fileList"));
+		
+	}
 	
 }
 
