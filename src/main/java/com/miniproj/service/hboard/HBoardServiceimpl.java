@@ -7,6 +7,7 @@ import javax.inject.Inject;
 
 import org.springframework.stereotype.Service;
 
+import com.miniproj.model.BoardDetailInfo;
 import com.miniproj.model.BoardUpFilesVODTO;
 import com.miniproj.model.HBoardDTO;
 import com.miniproj.model.HBoardVO;
@@ -88,4 +89,39 @@ public class HBoardServiceimpl implements HBoardService {
 		return map;
 	}
 
+	@Override
+	public HBoardDTO testResultMap(int boardNo) throws Exception {
+		return bDao.testResultMap(boardNo);
+	}
+
+	@Override
+	public List<BoardDetailInfo> read(int boardNo, String ipAddr) throws Exception {
+		List<BoardDetailInfo> boardInfo = bDao.selectBoardDetailByBoardNo(boardNo);
+		
+		// 조회수 증가
+		// dateDiff = 날짜차이 계산결과
+		int dateDiff = bDao.selectDateDiff(ipAddr, boardNo);
+		
+		if (dateDiff == -1) { // - 해당 아이피 주소가 boardNo번 글을 최초로 조회
+			// → 아이피 주소가 boardNo번 글을 읽은 시간을 테이블에 저장 (insert)
+			if (bDao.insertBoardReadLog(ipAddr, boardNo) == 1) {
+				// → 조회수 증가 (+1)
+				updateReadCount(boardNo, boardInfo);
+			}
+		} else if (dateDiff >= 1) { // 해당 아이피 주소가 boardNo번 글을 최초로 조회
+			// → 아이피 주소가 boardNo번 글을 읽은 시간을 테이블에 수정 (update)
+			bDao.updateReadWhen(ipAddr, boardNo);
+			// → 조회수 증가 (+1)
+			updateReadCount(boardNo, boardInfo);
+		}
+		return boardInfo;
+	}
+
+	protected void updateReadCount(int boardNo, List<BoardDetailInfo> boardInfo) throws Exception {
+		if (bDao.updateReadCount(boardNo) == 1) {
+			for (BoardDetailInfo b : boardInfo) {
+				b.setReadCount(b.getReadCount() + 1);
+			}
+		};
+	}
 }
