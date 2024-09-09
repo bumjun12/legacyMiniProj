@@ -22,12 +22,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.miniproj.model.BoardDetailInfo;
 import com.miniproj.model.BoardUpFilesVODTO;
 import com.miniproj.model.HBoardDTO;
 import com.miniproj.model.HBoardVO;
 import com.miniproj.model.MyResponseWithoutData;
 import com.miniproj.service.hboard.HBoardService;
 import com.miniproj.util.FileProcess;
+import com.miniproj.util.GetClientIpAddr;
 
 // Controller 단에서 해야 할 일
 // 1) URI 매핑 (어떤 URI가 어떤 방식 (GET/POST)으로 호출되었을 때 어떤 메서드에 매핑 시킬 것이냐)
@@ -256,10 +258,10 @@ public class HBoardController {
 	
 	// -------------------- 게시글 상세 페이지 --------------------
 	
-	@GetMapping("/viewBoard") // hboard/viewBoard?boardNo=24
-	public void viewBoard(@RequestParam("boardNo") int boardNo, Model model) {
+	@GetMapping("/viewBoard1") // hboard/viewBoard?boardNo=24
+	public void viewBoard1(@RequestParam("boardNo") int boardNo, Model model) {
 		
-		logger.info(boardNo + "번 글을 조회하자~");
+//		logger.info(boardNo + "번 글을 조회하자~");
 		// viewBoard.jsp 에 상세글 + 업로드 파일 정보 출력
 		HashMap<String, Object> boardMap = null;
 		
@@ -276,6 +278,39 @@ public class HBoardController {
 		model.addAttribute("fileList", boardMap.get("fileList"));
 		
 	}
-	
-}
 
+	// resultMap 테스트
+	@GetMapping("/viewBoard2")
+	public void viewBoard2(@RequestParam("boardNo") int boardNo, Model model) {
+		
+		HBoardDTO dto = null;
+		
+		try {
+			dto = service.testResultMap(boardNo);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		model.addAttribute("board", dto);
+		
+	}
+	
+	@GetMapping("/viewBoard")
+	public void viewBoard(@RequestParam("boardNo") int boardNo, Model model, HttpServletRequest request) {
+//		logger.info(boardNo + "번 글 조회하자~");
+		List<BoardDetailInfo> boardDetailInfo = null;
+		
+		String ipAddr = GetClientIpAddr.getClientIp(request);
+		System.out.println(ipAddr + "가 " + boardNo + "번 글을 조회한다!");
+		
+		
+		try {
+			boardDetailInfo = service.read(boardNo, ipAddr);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		model.addAttribute("boardDetailInfo" , boardDetailInfo);
+		
+	}
+}
