@@ -71,7 +71,7 @@ public class FileProcess {
 				result = BoardUpFilesVODTO.builder()
 						.ext(ext)
 						.newFileName(ymd[2] + File.separator + newFileName)
-						.originFileName(ymd[2] + File.separator + originalFileName)
+						.originFileName(originalFileName)
 						.size(fileSize)
 						.build();
 			}

@@ -1,12 +1,15 @@
 package com.miniproj.persistence;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.stereotype.Repository;
 
+import com.miniproj.model.BoardDetailInfo;
 import com.miniproj.model.BoardUpFilesVODTO;
 import com.miniproj.model.HBoardDTO;
 import com.miniproj.model.HBoardVO;
@@ -58,6 +61,53 @@ public class HBoardDAOimpl implements HBoardDAO {
 	public List<BoardUpFilesVODTO> selectBoardUpfileByBoardNo(int boardNo) throws Exception {
 		return ses.selectList(ns + "selectBoardUpfileByBoardNo", boardNo);
 		
+	}
+
+	@Override
+	public HBoardDTO testResultMap(int boardNo) throws Exception {
+		
+		return ses.selectOne(ns + "selectResultmapTest", boardNo);
+		
+	}
+
+	@Override
+	public List<BoardDetailInfo> selectBoardDetailByBoardNo(int boardNo) throws Exception {
+		return ses.selectList(ns + "selectBoardDetailInfoByBoardNo", boardNo);
+	}
+	
+	
+	
+
+	@Override
+	public int selectDateDiff(String ipAddr, int boardNo) throws Exception {
+		// 넘겨줘야할 파라미터가 2개 이상이면, Map을 이용하여 파라미터를 매핑하여 넘겨준다
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("readWho", ipAddr);
+		params.put("boardNo", boardNo);
+		
+		return ses.selectOne(ns + "selectBoardDateDiff", params);
+	}
+
+	@Override
+	public int insertBoardReadLog(String ipAddr, int boardNo)  throws Exception{
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("readWho", ipAddr);
+		params.put("boardNo", boardNo);
+		return ses.insert(ns + "saveBoardReadLog", params);
+	}
+
+	@Override
+	public int updateReadWhen(String ipAddr, int boardNo)throws Exception {
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put("readWho", ipAddr);
+		params.put("boardNo", boardNo);
+		return ses.update(ns + "updateBoardReadLog", params);
+		
+	}
+
+	@Override
+	public int updateReadCount(int boardNo)throws Exception {
+		return ses.update(ns + "updateReadCount", boardNo);
 	}
 
 }
